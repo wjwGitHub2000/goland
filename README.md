@@ -1,4 +1,4 @@
-func GoodsTask() {
+
 	cn := cron.New(cron.WithSeconds())
 	_, err := cn.AddFunc("*/30 * * * * *", func() {
 		all, err := mysql.GoodsGetAll()
@@ -26,4 +26,4 @@ func GoodsTask() {
 	}
 	cn.Start()
 	select {}
-}
+ 
