@@ -1,0 +1,50 @@
+package vender
+
+import (
+	"fmt"
+	"github.com/hashicorp/consul/api"
+	"strconv"
+	"test/common/global"
+)
+
+type Register struct {
+	Host string
+	Port int
+}
+type ConsulRegister interface {
+	ConsulServiceRegister(ID, Name, Address string, Port int) bool
+	ConsulServicesWithFilter(Name string) map[string]*api.AgentService
+}
+
+func NewConsul(Host string, Port int) ConsulRegister {
+	return Register{
+		Host: Host,
+		Port: Port,
+	}
+}
+func (Register) ConsulServiceRegister(ID, Name, Address string, Port int) bool {
+	asr := &api.AgentServiceRegistration{
+		ID:      ID,
+		Name:    Name,
+		Port:    Port,
+		Address: Address,
+		Check: &api.AgentServiceCheck{
+			Interval:                       "5s",
+			Timeout:                        "5s",
+			GRPC:                           Address + ":" + strconv.Itoa(Port),
+			DeregisterCriticalServiceAfter: "10s",
+		},
+	}
+	err := global.ConsulClient.Agent().ServiceRegister(asr)
+	if err != nil {
+		return false
+	}
+	return true
+}
+func (Register) ConsulServicesWithFilter(Name string) map[string]*api.AgentService {
+	filter, err := global.ConsulClient.Agent().ServicesWithFilter(fmt.Sprintf(`Service == "%s"`, Name))
+	if err != nil {
+		return nil
+	}
+	return filter
+}
