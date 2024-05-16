@@ -1,0 +1,23 @@
+func InitEs() {
+	gse := global.ServerConfig.ElasticConfig
+	var err error
+	Ec, err = elastic.NewClient(elastic.SetURL("http://127.0.0.1:9222"), elastic.SetSniff(gse.Sniff))
+	if err != nil {
+		log.Fatal("es启动失败")
+	}
+	log.Println("es启动成功")
+}
+
+
+func GoodsSearch(info string) []map[string]interface{} {
+	do, _ := Ec.Search().Index("goods").Query(elastic.NewQueryStringQuery(info)).Highlight(elastic.NewHighlight().Field("GoodsName").Field("GoodsDesc").PreTags("<span color ='red'>").PostTags("</span>")).Do(context.Background())
+	var data []map[string]interface{}
+	for _, v := range do.Hits.Hits {
+		var d map[string]interface{}
+		json.Unmarshal(v.Source, &d)
+		d["GoodsName"] = v.Highlight
+		d["GoodsDesc"] = v.Highlight
+		data = append(data, d)
+	}
+	return data
+}
