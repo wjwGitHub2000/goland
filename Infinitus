@@ -1,0 +1,24 @@
+// GoodsClassify 
+type GoodsClassify struct {
+	ID   int    // 商品ID
+	PID  int    // 父ID
+	Name string // 商品名称
+}
+
+func GetListGoods(GoodsClassify []*GoodsClassify, pid int, level int) []*goods.ClassType {
+	var goodAddr []*goods.ClassType
+	for _, v := range GoodsClassify {
+		if v.PID == pid {
+			// 这里可以理解为每次都从最原始的数据里面找出相对就的ID进行匹配，直到找不到就返回
+			child := GetListGoods(GoodsClassify, v.ID, level+1)
+			node := goods.ClassType{
+				PId:       int64(v.PID),
+				Id:        int64(v.ID),
+				Name:      v.Name,
+				ClassType: child,
+			}
+			goodAddr = append(goodAddr, &node)
+		}
+	}
+	return goodAddr
+}
