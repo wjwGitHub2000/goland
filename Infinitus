@@ -26,8 +26,7 @@ func GetListGoods(GoodsClassify []*GoodsClassify, pid int, level int) []*goods.C
 
 
 
-
-////
+proto
 message GoodsClassResponse {
   repeated ClassType ClassType=4;
 }
