@@ -1,0 +1,125 @@
+package initialize
+
+import (
+	"fmt"
+	"github.com/hashicorp/consul/api"
+	"github.com/nacos-group/nacos-sdk-go/v2/clients"
+	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
+	"github.com/nacos-group/nacos-sdk-go/v2/vo"
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"gopkg.in/yaml.v2"
+	"log"
+	"test/common/global"
+	"test/common/proto/goods"
+	"test/common/vender"
+	"test/common/viper"
+)
+
+func InitServerZap() {
+	ndc := zap.NewDevelopmentConfig()
+	ndc.OutputPaths = []string{
+		"./server.log",
+		"stdout",
+		"stderr",
+	}
+	build, err := ndc.Build()
+	if err != nil {
+		return
+	}
+	zap.ReplaceGlobals(build)
+	log.Println("server配置日志启动成功")
+}
+func InitApiZap() {
+	ndc := zap.NewDevelopmentConfig()
+	ndc.OutputPaths = []string{
+		"./api.log",
+		"stdout",
+		"stderr",
+	}
+	build, err := ndc.Build()
+	if err != nil {
+		return
+	}
+	zap.ReplaceGlobals(build)
+	log.Println("api配置日志启动成功")
+}
+func InitNaCos() {
+	cfg := viper.LoadConfig()
+	// 创建clientConfig
+	clientConfig := constant.ClientConfig{
+		NamespaceId:         cfg.NamespaceId, // 如果需要支持多namespace，我们可以创建多个client,它们有不同的NamespaceId。当namespace是public时，此处填空字符串。
+		TimeoutMs:           5000,
+		NotLoadCacheAtStart: true,
+		LogDir:              "/tmp/nacos/log",
+		CacheDir:            "/tmp/nacos/cache",
+		LogLevel:            "debug",
+	}
+	// 至少一个ServerConfig
+	serverConfigs := []constant.ServerConfig{
+		{
+			IpAddr: cfg.IpAddr,
+			Port:   uint64(cfg.Port),
+		},
+	}
+	// 创建动态配置客户端的另一种方式 (推荐)
+	configClient, err := clients.NewConfigClient(
+		vo.NacosClientParam{
+			ClientConfig:  &clientConfig,
+			ServerConfigs: serverConfigs,
+		},
+	)
+	if err != nil {
+		panic(err)
+	}
+	content, err := configClient.GetConfig(vo.ConfigParam{
+		DataId: cfg.DataId,
+		Group:  cfg.Group})
+	if err != nil {
+		panic(err)
+	}
+	yaml.Unmarshal([]byte(content), &global.ServerConfig)
+	log.Println("naCos启动成功")
+}
+func InitConsul() {
+	sc := global.ServerConfig.ConsulConfig
+	client, _ := api.NewClient(api.DefaultConfig())
+	global.ConsulClient = client
+	newConsul := vender.NewConsul(sc.Host, sc.Port)
+	filter := newConsul.ConsulServicesWithFilter(sc.Name)
+	var addr string
+	for _, v := range filter {
+		addr = v.Address
+	}
+	if addr == "" {
+		//todo:使用服务过滤机制
+		b := newConsul.ConsulServiceRegister(sc.ID, sc.Name, sc.Address, sc.Port)
+		if !b {
+			log.Fatalln("consul注册失败")
+		}
+	} else {
+		log.Println("consul已经注册过了")
+	}
+	log.Println("consul注册成功")
+}
+func InitGrpc() {
+	sc := global.ServerConfig.ConsulConfig
+	filter, err := global.ConsulClient.Agent().ServicesWithFilter(fmt.Sprintf(`Service =="%s"`, sc.Name))
+	if err != nil {
+		panic(err)
+	}
+	var addr string
+	var port int
+	for _, v := range filter {
+		addr = v.Address
+		port = v.Port
+	}
+
+	dial, err := grpc.Dial(fmt.Sprintf("%s:%d", addr, port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		panic(err)
+	}
+	global.GoodsClient = goods.NewGoodsClient(dial)
+	log.Println("grpc配置启动成功")
+}
