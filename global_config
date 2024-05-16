@@ -31,9 +31,9 @@ type ElasticConfig struct {
 	Port  int    `yaml:"Port"`
 	Sniff bool   `yaml:"Sniff"`
 }
-type LinkConfig struct {
-	GrpcPort int    `yaml:"GrpcPort"`
-	GinPort  string `yaml:"GinPort"`
+type PortConfig struct {
+	ServerPort int    `yaml:"ServerPort"`
+	ApiPort    string `yaml:"ApiPort"`
 }
 type ServerConf struct {
 	MysqlConfig   MysqlConfig   `yaml:"MysqlConfig"`
@@ -41,5 +41,6 @@ type ServerConf struct {
 	ConsulConfig  ConsulConfig  `yaml:"ConsulConfig"`
 	JwtConfig     JwtConfig     `yaml:"JwtConfig"`
 	ElasticConfig ElasticConfig `yaml:"ElasticConfig"`
-	LinkConfig    LinkConfig    `yaml:"LinkConfig"`
+	PortConfig    PortConfig    `yaml:"PortConfig"`
 }
+
