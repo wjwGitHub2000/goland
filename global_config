@@ -1,0 +1,45 @@
+package global
+
+type MysqlConfig struct {
+	UserName string `yaml:"UserName"`
+	PassWord string `yaml:"PassWord"`
+	Host     string `yaml:"Host"`
+	Port     int    `yaml:"Port"`
+	DBName   string `yaml:"DBName"`
+}
+type RedisConfig struct {
+	Addr string `yaml:"Addr"`
+	Port int    `yaml:"Port"`
+	DB   int    `yaml:"DB"`
+}
+
+type ConsulConfig struct {
+	Name    string `yaml:"Name"`
+	ID      string `yaml:"ID"`
+	Host    string `yaml:"Host"`
+	Port    int    `yaml:"Port"`
+	Address string `yaml:"Address"`
+}
+
+type JwtConfig struct {
+	AccessSecret string `yaml:"AccessSecret"`
+	AccessExpire int64  `yaml:"AccessExpire"`
+}
+
+type ElasticConfig struct {
+	Host  string `yaml:"Host"`
+	Port  int    `yaml:"Port"`
+	Sniff bool   `yaml:"Sniff"`
+}
+type LinkConfig struct {
+	GrpcPort int    `yaml:"GrpcPort"`
+	GinPort  string `yaml:"GinPort"`
+}
+type ServerConf struct {
+	MysqlConfig   MysqlConfig   `yaml:"MysqlConfig"`
+	RedisConfig   RedisConfig   `yaml:"RedisConfig"`
+	ConsulConfig  ConsulConfig  `yaml:"ConsulConfig"`
+	JwtConfig     JwtConfig     `yaml:"JwtConfig"`
+	ElasticConfig ElasticConfig `yaml:"ElasticConfig"`
+	LinkConfig    LinkConfig    `yaml:"LinkConfig"`
+}
