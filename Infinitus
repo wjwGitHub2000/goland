@@ -22,3 +22,14 @@ func GetListGoods(GoodsClassify []*GoodsClassify, pid int, level int) []*goods.C
 	}
 	return goodAddr
 }
+////
+message GoodsClassResponse {
+  repeated ClassType ClassType=4;
+}
+
+message ClassType {
+  int64 PId=1;
+  int64 Id=2;
+  string Name =3;
+  repeated ClassType ClassType=4;
+}
