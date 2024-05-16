@@ -1,2 +1,38 @@
 GoodsComments []*GoodsComment `gorm:"foreignKey:GoodsId"`
-result := DB.Preload("GoodsComments").Where("id=?", 3).First(&goods)
+
+func GoodsWithData(id int) *GoodsData {
+	var goodsData *Goods
+	result := DB.Preload("GoodsComments").Where("id=?", 3).First(&goodsData)
+	if result.Error != nil {
+		fmt.Println(result.Error)
+		return nil
+	}
+	var comment []*Comment
+	for _, v := range goodsData.GoodsComments {
+		comment = append(comment, &Comment{
+			UserId:  v.UserId,
+			GoodsId: v.GoodsId,
+			Comment: v.Comment,
+		})
+	}
+	data := &GoodsData{
+		GoodsName:  goodsData.GoodsName,
+		GoodsDesc:  goodsData.GoodsDesc,
+		GoodsPrice: goodsData.GoodsPrice,
+		Comment:    comment,
+	}
+	return data
+}
+
+type GoodsData struct {
+	GoodsName  string
+	GoodsDesc  string
+	GoodsPrice int
+	Comment    []*Comment
+}
+
+type Comment struct {
+	UserId  int
+	GoodsId int
+	Comment string
+
