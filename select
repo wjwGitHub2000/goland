@@ -1,0 +1,2 @@
+GoodsComments []*GoodsComment `gorm:"foreignKey:GoodsId"`
+result := DB.Preload("GoodsComments").Where("id=?", 3).First(&goods)
