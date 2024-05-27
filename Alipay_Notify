@@ -40,3 +40,34 @@ func TimeAliPay(gmt_payment string) int64 {
 	inLocation, _ := time.ParseInLocation("2006-01-02 15:04:05", gmt_payment, location)
 	return inLocation.Unix()
 }
+
+//wayTwo
+pay := common.NewAliPayClient()
+	notification, err := pay.DecodeNotification(r.Form)
+	if err != nil {
+		log.Println("解析异步通知发生错误", err)
+		return
+	}
+	log.Println("解析异步通知成功:", notification.NotifyId)
+	// 示例一：使用自定义请求进行查询
+	var p = alipay.NewPayload("alipay.trade.query")
+	p.AddBizField("out_trade_no", notification.OutTradeNo)
+
+	var rsp *alipay.TradeQueryRsp
+	if err = pay.Request(context.Background(), p, &rsp); err != nil {
+		log.Printf("异步通知验证订单 %s 信息发生错误: %s \n", notification.OutTradeNo, err.Error())
+		return
+	}
+	if rsp.IsFailure() {
+		log.Printf("异步通知验证订单 %s 信息发生错误: %s-%s \n", notification.OutTradeNo, rsp.Msg, rsp.SubMsg)
+		return
+	}
+	log.Printf("订单 %s 支付成功 \n", notification.OutTradeNo)
+	pay.ACKNotification(w)
+	return &types.Response{
+		Code:    0,
+		Message: "支付回调成功,订单状态已修改",
+		Data: map[string]interface{}{
+			"OutTradeNo": notification.OutTradeNo,
+		},
+	}, nil
