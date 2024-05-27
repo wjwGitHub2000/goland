@@ -1,0 +1,42 @@
+func (l *AlipayNotifyLogic) AlipayNotify(w http.ResponseWriter, r *http.Request) (resp *types.Response, err error) {
+	gmt_payment := r.FormValue("gmt_payment")
+	out_trade_no := r.FormValue("out_trade_no")
+	trade_status := r.FormValue("trade_status")
+	status := 0
+	switch trade_status {
+	case "TRADE_FINISHED":
+		status = 1
+		print("success")
+	case "TRADE_SUCCESS":
+		status = 1
+		print("success")
+	case "WAIT_BUYER_PAY":
+		status = 0
+	case "TRADE_CLOSED":
+		status = 2
+		print("success")
+	default:
+		status = 0
+	}
+	fmt.Println(status)
+	if status == 1 {
+		orderStatus, _ := l.svcCtx.OrderSrv.UpdOrderStatus(l.ctx, &order.UpdOrderStatusRequest{
+			Status:  int64(status),
+			PayTime: TimeAliPay(gmt_payment),
+			OrderSn: out_trade_no,
+		})
+		if !orderStatus.Success {
+			return nil, errors.New("修改订单状态失败")
+		}
+	}
+
+	return &types.Response{
+		Code:    0,
+		Message: "回调成功,修改订单状态完成",
+	}, nil
+}
+func TimeAliPay(gmt_payment string) int64 {
+	location, _ := time.LoadLocation("Local")
+	inLocation, _ := time.ParseInLocation("2006-01-02 15:04:05", gmt_payment, location)
+	return inLocation.Unix()
+}
