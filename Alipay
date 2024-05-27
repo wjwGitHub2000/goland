@@ -1,0 +1,60 @@
+package common
+
+import (
+	"context"
+	"fmt"
+	"github.com/smartwalle/alipay/v3"
+	"log"
+	"week1/common/viper"
+)
+
+var (
+	client *alipay.Client
+	err    error
+)
+
+func NewAliPayClient() *alipay.Client {
+	cfg := viper.LoadViper()
+	client, err = alipay.New(cfg.AppId, cfg.PrivateKey, false)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	//添加公钥
+	err = client.LoadAliPayPublicKey("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApSwuYElIzWgCgnGcanvEyJHhy7I1aSOTYMn4dS8A8oCttk/4rABLycTcYQOP5ix59nSpsNDU6L4noA0LhizlcXFd8bRCpEFCGUF9Uj1wSCOsYES5I7E1mZLCF/rpl6ymhJB28/LupUgZ11HxW1t87H0vI2M8wDr+DjR8pEZGErZ64tOajV4QNmuWifIXgu/ldYMOls+aQoxzJK32YEWFwCSiBVC70M1mt0Y4r1AE9H7eJVQYIpVaACfHodu7BhjY0qzRc+n1zv5qmK1DNgckQZpqCA9wNUQoA+Dx+GnuN/bUWmjxkqbG2v9ZdDx1sYofUq+lCEouKKtjbQqF3xWAmwIDAQAB")
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	return client
+}
+
+// Alipay 支付
+func Alipay(OrderName, OrderNumber, OrderPrice string) string {
+	NewAliPayClient()
+	var p = alipay.TradePagePay{}
+	p.NotifyURL = "https://72ba9b46.r24.cpolar.top/order/notify"
+	p.ReturnURL = "http://xxx"
+	p.Subject = OrderName
+	p.OutTradeNo = OrderNumber
+	p.TotalAmount = OrderPrice
+	p.ProductCode = "FAST_INSTANT_TRADE_PAY"
+	url, _ := client.TradePagePay(p)
+	// 这个 payURL 即是用于打开支付宝支付页面的 URL，可将输出的内容复制，到浏览器中访问该 URL 即可打开支付页面。
+	var payURL = url.String()
+	return payURL
+}
+
+// Refund 退款
+func Refund(OrderNumber, OrderPrice string) *alipay.TradeRefundRsp {
+	NewAliPayClient()
+	var p = alipay.TradeRefund{}
+	p.RefundAmount = OrderPrice
+	p.OutTradeNo = OrderNumber
+	result, err := client.TradeRefund(context.Background(), p)
+	if err != nil {
+		log.Fatal("退款失败", err)
+	}
+	log.Println("退款成功")
+	return result
+}
