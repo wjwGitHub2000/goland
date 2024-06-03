@@ -1,0 +1,50 @@
+func init() {
+	esClient, err = elastic.NewClient(elastic.SetURL("http://127.0.0.1:9222"), elastic.SetSniff(false))
+	if err != nil {
+		log.Fatal("es连接失败")
+		return
+	}
+	all, _ := mysql.GoodsAll()
+	for _, v := range all {
+		AddEs(strconv.Itoa(int(v.ID)), v)
+	}
+	log.Println("es连接成功,同步es成功")
+}
+
+func AddEs(id string, data *mysql.Goods) bool {
+	_, err = esClient.Index().Index("goods").Id(id).BodyJson(data).Do(context.Background())
+	if err != nil {
+		return false
+	}
+	return true
+}
+func GoodsEsSearch(keywords string) []map[string]interface{} {
+	do, _ := esClient.Search().Index("goods").Query(elastic.NewQueryStringQuery(keywords)).Do(context.Background())
+	var data []map[string]interface{}
+	for _, v := range do.Hits.Hits {
+		var d map[string]interface{}
+		json.Unmarshal(v.Source, &d)
+		data = append(data, d)
+	}
+	return data
+}
+func GoodsEsSearchMulti(goodsName, goodsClass string) []map[string]interface{} {
+	do, _ := esClient.Search().Index("goods").Query(elastic.NewBoolQuery().Should(elastic.NewMatchQuery("GoodsName", goodsName), elastic.NewMatchQuery("GoodsClass", goodsClass))).Do(context.Background())
+	var data []map[string]interface{}
+	for _, v := range do.Hits.Hits {
+		var d map[string]interface{}
+		json.Unmarshal(v.Source, &d)
+		data = append(data, d)
+	}
+	return data
+}
+func GoodsPriceAndSales(choose string) []map[string]interface{} {
+	do, _ := esClient.Search().Index("goods").Query(elastic.NewMatchAllQuery()).Sort(choose, false).Do(context.Background())
+	var data []map[string]interface{}
+	for _, v := range do.Hits.Hits {
+		var d map[string]interface{}
+		json.Unmarshal(v.Source, &d)
+		data = append(data, d)
+	}
+	return data
+}
