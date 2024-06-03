@@ -16,7 +16,7 @@ type Goods struct {
 	GoodsPrice int    `gorm:"column:goods_price;type:int(10);comment:商品价格"`
 	GoodsStock int    `gorm:"column:goods_stock;type:int(10);comment:商品库存"`
 	GoodsGroup int    `gorm:"column:goods_group;type:int(10);comment:成团人数"`
-	Browse     int    `gorm:"column:browse;type:int(10);comment:浏览量"`
+	Sales      int    `gorm:"column:browse;type:int(10);comment:销量"`
 	Status     int    `gorm:"column:status;type:int(1);comment:状态"`
 }
 
@@ -28,7 +28,7 @@ type Order struct {
 	OrderNumber string `gorm:"column:order_number;type:varchar(36);comment:订单编号"`
 	GoodsName   string `gorm:"column:goods_name;type:varchar(30);comment:商品名称"`
 	GoodsPrice  int    `gorm:"column:goods_price;type:int(10);comment:商品价格"`
-	TotCont     int    `gorm:"column:tot_cont;type:int(10);comment:商品数量"`
+	TotCount    int    `gorm:"column:tot_count;type:int(10);comment:商品数量"`
 	TotPrice    int    `gorm:"column:tot_price;type:int(10);comment:总价"`
 	Payment     int    `gorm:"column:payment;type:int(1);comment:支付方式:1-支付宝，2-微信"`
 	Status      int    `gorm:"column:status;type:int(1);comment:状态:0-未支付,1-已支付,2-支付取消"`
