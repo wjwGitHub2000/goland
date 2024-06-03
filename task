@@ -25,3 +25,27 @@ cn := cron.New(cron.WithSeconds())
 	}
 	cn.Start()
 	select {}
+---------------------------------------------------------------------------------------------------------------------
+c := cron.New(cron.WithSeconds())
+	_, err := c.AddFunc("0 */1 * * * *", func() {
+		// 5分钟前的时间
+		now := time.Now().Add(-5 * time.Minute)
+		var order []*mysql.Order
+		//查询创建时间大于5分钟的所有订单
+		mysql.DB.Where("created_at < ?", now).Find(&order)
+		for _, v := range order {
+			err := mysql.DB.Where("id=?", v.ID).Delete(&mysql.Order{}).Error
+			if err != nil {
+				log.Fatal("删除订单失败")
+			}
+			//需要同时执行商品库存修改,返回商品实际库存,同时应该使用mysql事务,保证同时执行
+		}
+
+		log.Println("执行了一次")
+	})
+	if err != nil {
+		return
+	}
+	log.Println("开始执行")
+	c.Start()
+	select {}
