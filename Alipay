@@ -15,7 +15,6 @@ type Goods struct {
 	GoodsClass int    `gorm:"column:goods_class;type:int(10);comment:商品分类id"`
 	GoodsPrice int    `gorm:"column:goods_price;type:int(10);comment:商品价格"`
 	GoodsStock int    `gorm:"column:goods_stock;type:int(10);comment:商品库存"`
-	GoodsGroup int    `gorm:"column:goods_group;type:int(10);comment:成团人数"`
 	Sales      int    `gorm:"column:browse;type:int(10);comment:销量"`
 	Status     int    `gorm:"column:status;type:int(1);comment:状态"`
 }
