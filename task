@@ -27,14 +27,15 @@ cn := cron.New(cron.WithSeconds())
 	select {}
 ---------------------------------------------------------------------------------------------------------------------
 c := cron.New(cron.WithSeconds())
-	_, err := c.AddFunc("0 */1 * * * *", func() {
+	_, err = c.AddFunc("0 */5 * * * *", func() {
 		// 5分钟前的时间
 		now := time.Now().Add(-5 * time.Minute)
 		var order []*mysql.Order
 		//查询创建时间大于5分钟的所有订单
-		mysql.DB.Where("created_at < ?", now).Find(&order)
+		mysql.DB.Where("created_at < ? and status = ?", now, 0).Find(&order)
 		for _, v := range order {
-			err := mysql.DB.Where("id=?", v.ID).Delete(&mysql.Order{}).Error
+			//删除创建时间大于5分钟的订单
+			err = mysql.DB.Where("id=?", v.ID).Delete(&mysql.Order{}).Error
 			if err != nil {
 				log.Fatal("删除订单失败")
 			}
