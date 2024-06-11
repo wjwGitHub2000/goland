@@ -1,3 +1,9 @@
+Telemetry:
+  Name: user-api
+  Endpoint: http://127.0.0.1:16686/api/traces
+  Sampler: 1.0
+  Batcher: jaeger
+------------------------------
 package middleware
 
 import (
