@@ -70,3 +70,18 @@ func Alipay(OrderName, OrderNumber, OrderPrice string) string {
 	var payURL = url.String()
 	return payURL
 }
+
+// Refund 退款
+func Refund(OrderNumber, OrderPrice string) *alipay.TradeRefundRsp {
+	NewAliPayClient()
+	var p = alipay.TradeRefund{}
+	p.RefundAmount = OrderPrice
+	p.OutTradeNo = OrderNumber
+	result, err := client.TradeRefund(context.Background(), p)
+	if err != nil {
+		log.Fatal("退款失败", err)
+	}
+	log.Println("退款成功")
+	return result
+}
+
